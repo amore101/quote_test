@@ -1,19 +1,13 @@
-const {Builder, By, Key, until} = require('selenium-webdriver');
-require('chromedriver');
-const Assert = require('assert');
-require('dotenv').config();
+import pkg from 'selenium-webdriver';
+const {Builder, By, Key, until} = pkg;
+import 'chromedriver';
+import dotenv from 'dotenv';
+dotenv.config();
  
 const account = process.env.ACCOUNT;
 const password = process.env.PASSWORD;
  
-test = () => {
-    console.log(typeof(account));
-    console.log(typeof(password));
-}
- 
-// test();
- 
-quotesTest = async(quoteId, action) => {
+export const quotesTest = async(quoteId, action) => {
  
     // open the sandbox
     let driver = new Builder().forBrowser('chrome').build();
@@ -235,12 +229,5 @@ quotesTest = async(quoteId, action) => {
     await driver.quit();
 }
  
-const args = process.argv.slice(2);
-quotesTest(args[0], args[1]);
-// args.forEach(arg => {
-//     console.log(arg);
-//     quotesTest(arg);
-// });
- 
-// node quotesTest a0p1I000008UOIOQA4 submit
+
 

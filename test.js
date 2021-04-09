@@ -1,23 +1,22 @@
-const {Builder, By, Key, until} = require('selenium-webdriver');
-require('chromedriver');
-const Assert = require('assert');
-require('dotenv').config();
+import pkg from 'selenium-webdriver';
+const {Builder, By, Key, until} = pkg;
+import 'chromedriver';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const account = process.env.ACCOUNT;
 const password = process.env.PASSWORD;
+let x = '';
+// let x = {profile: 'aaa'};
 
-test = () => {
-    console.log(typeof(account));
-    console.log(typeof(password));
-}
+const QLE_Test = async() => {
 
-// test();
+    // console.log(x.profile);
+    fun ();
+    console.log(x);
 
-QLE_Test = async() => {
 
-    console.log(".");
-    console.log('\.');
-
+    
     // // how to use date object
     // const dateee = new Date("2021-03-01");
     // dateee.setDate(dateee.getDate() + 1);
@@ -25,8 +24,12 @@ QLE_Test = async() => {
     // console.log(dateee.toLocaleDateString("en-US"));
 }
 
+const fun = () => {
+    x = 'xx';
+}
+
 const args = process.argv.slice(2);
-QLE_Test();
+QLE_Test(args[0]);
 // args.forEach(arg => {
 //     console.log(arg);
 //     quotesTest(arg);
