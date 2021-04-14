@@ -1,6 +1,11 @@
 import { quotelineTest } from './test.js';
+import pkg from 'selenium-webdriver';
+const {Builder, By, Key, until} = pkg;
+import 'chromedriver';
 import dotenv from 'dotenv';
 dotenv.config();
+
+let driver = new Builder().forBrowser('chrome').build();
 
 const args = process.argv.slice(2);
 
@@ -13,7 +18,7 @@ if (args.length > 5) {
     }
 }
 
-quotelineTest(args[0], args[1], args[2], args[3], arg_4);
+quotelineTest(args[0], args[1], args[2], args[3], arg_4, driver);
 
 // quoteId, profile, quantity, discount, license_model
 
@@ -24,3 +29,5 @@ quotelineTest(args[0], args[1], args[2], args[3], arg_4);
 // friday
 
 // from AVC TCV - open oppotunity to check
+
+// a0p2g000001ZD6FAAW

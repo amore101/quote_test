@@ -6,7 +6,7 @@ dotenv.config();
  
 const account = process.env.ACCOUNT;
 const password = process.env.PASSWORD;
-
+ 
 // Outline - quotesTest
   // take quoteId, action, profile and driver as parameters
   // check values in the quote page
@@ -14,13 +14,18 @@ const password = process.env.PASSWORD;
   // execute the action
   // log out (change profile)
   // check values
-
-
-
+ 
+ 
+let owner = '';
 let origin_profile = '';
 
  
 export const quotesTest = async(quoteId, action, profile, driver) => {
+ 
+    // all parameters
+    console.log('Quote Id: ' + quoteId);
+    console.log('Action: ' + action);
+    console.log('Profile: ' + profile);
  
     // open the sandbox
     await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/page/home');
@@ -82,10 +87,11 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         process.exit(1);
       }
 
-      // log in with the owner account
-      // let origin_profile = '';
-      await switchAccount(quoteId, 'login', driver, profile);
       
+ 
+      // log in with the owner account
+      await switchAccount(quoteId, 'login', driver, profile);
+
       // submit for approval
       await driver.wait(until.elementLocated(By.xpath("//button[@name='SBQQ__Quote__c.AASubmit']")), 15000)
         .click()
@@ -102,8 +108,8 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         await driver.quit();
         process.exit(1);
       }
-
-      // log out
+ 
+      // check current account log out
       await switchAccount(quoteId, 'logout', driver, profile);
       
       // check status & recordType after submission
@@ -197,9 +203,8 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
       }
  
       // log in with the owner account
-      let origin_profile = '';
       await switchAccount(quoteId, 'login', driver, profile);
-
+ 
       // click recall button
       await (await driver.wait(until.elementLocated(By.xpath("//button[@name='SBQQ__Quote__c.AARecall']")),10000))
         .click()
@@ -214,7 +219,7 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         await driver.quit();
         process.exit(1);
       }
-
+ 
       // log out
       await switchAccount(quoteId, 'logout', driver, profile);
  
@@ -258,72 +263,120 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
       await driver.quit();
       process.exit(1);
     } 
-
+ 
     await driver.quit();
 }
  
 const switchAccount = async(quoteId, action, driver, profile) => {
-  // https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/0051I000001y4soQAA?noredirect=1&isUserEntityOverride=1
-  if (action === 'login') {
-      console.log('Logging in with owner account...')
+  let curr_user = '';
+  // get current user
+  try {
+    await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+    curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
+    await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
   }
-  else if (action === 'logout') {
-      console.log('Logging out from owner account...');
-      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
-      await driver.wait(until.elementLocated(By.xpath("//a[@class='profile-link-label logout uiOutputURL']")), 20000).click();
-      await driver.sleep(5000);
-      await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+  catch(e) {
+    console.log("Check current account failed!");
+    console.log(e);
   }
-  await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]")), 20000).click();
-  await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
-
-  // switch to iframe & eidt
   await driver.sleep(5000);
-  await (await driver).switchTo().defaultContent();
-  const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
-  await (await driver).switchTo().frame(frame1);
-  let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
-  if (action === 'login') {
-      origin_profile += curr_profile;
-  }
-  console.log("Origin profile: " + origin_profile);
-  await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
-  // sleep
-  await (await driver).sleep(5000);
-  //switch to iframe & modify profile
-  await (await driver).switchTo().defaultContent();
-  const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
-  await (await driver).switchTo().frame(frame2);
-  if (action === 'login') {
-      // get the origin profile ???
-      await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
-      // await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys('Renewals');
-  }
-  else if (action === 'logout') {
-      // ???
-      // await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys('Read Only');
-      console.log("Origin profile: " + origin_profile);
-      await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(origin_profile);
-  }
 
-  // save
-  await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
-  //switch to iframe & login
   if (action === 'login') {
+    console.log('Logging in with owner account...')
+    // get owner
+    try {
+      owner = await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).getText();
+    }
+    catch(e) {
+      console.log("Check owner failed!");
+      console.log(e);
+    }
+    if (owner === curr_user) console.log("Already logged in!");
+    else {
+      // find the owner
+      try {
+        console.log('Finding Quote Owner...');
+        await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+        await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+      }
+      catch(e) {
+          console.log("Finding Owner Failed: " + e);
+          await driver.quit();
+          process.exit(1);
+      }
+      await driver.sleep(5000);
+      // get origin_profile and edit
+      await (await driver).switchTo().defaultContent();
+      const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+      await (await driver).switchTo().frame(frame1);
+      let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
+      origin_profile += curr_profile;
+      console.log("Origin profile: " + origin_profile);
+      await (await driver).sleep(2000);
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
+      // sleep
       await (await driver).sleep(5000);
+      //switch to iframe & modify profile
+      await (await driver).switchTo().defaultContent();
+      const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+      await (await driver).switchTo().frame(frame2);
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
+
+      // save
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
+      await (await driver).sleep(5000);
+
+      // log in
       await (await driver).switchTo().defaultContent();
       const frame3 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
       await (await driver).switchTo().frame(frame3);
       await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='login']")), 20000).click();
       await (await driver).sleep(5000);
       await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+    }
   }
   else if (action === 'logout') {
+    console.log('Logging out from owner account...');
+    if (owner !== curr_user) console.log("Already logged out!");
+    else {
+      // log out
+      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      await driver.wait(until.elementLocated(By.xpath("//a[@class='profile-link-label logout uiOutputURL']")), 20000).click();
+      await driver.sleep(5000);
+      await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+      // find the owner
+      try {
+        console.log('Finding Quote Owner...');
+        await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+        await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+      }
+      catch(e) {
+          console.log("Finding Owner Failed: " + e);
+          await driver.quit();
+          process.exit(1);
+      }
+      // switch to iframe & eidt
+      await driver.sleep(5000);
+      await (await driver).switchTo().defaultContent();
+      const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+      await (await driver).switchTo().frame(frame1);
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
+      // sleep
+      await (await driver).sleep(5000);
+      //switch to iframe & modify profile
+      await (await driver).switchTo().defaultContent();
+      const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+      await (await driver).switchTo().frame(frame2);
+      console.log("Origin profile: " + origin_profile);
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(origin_profile);
+      // save
+      await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
       await (await driver).sleep(5000);
       await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+    }
   }
   console.log(action + ' completed!');
   await (await driver).sleep(5000);
 }
-
+ 
 

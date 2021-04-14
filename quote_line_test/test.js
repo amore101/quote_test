@@ -8,12 +8,18 @@ dotenv.config();
 const account = process.env.ACCOUNT;
 const password = process.env.PASSWORD;
 
-export const quotelineTest = async(quoteId, profile, quantity, discount, license_model) => {
+
+// Outline - quotelineTest
+  // take quoteId, profile, quantity, discount,license_model and driver as parameters
+  // check values in the quote page
+  // switch to the owner account (change profile)
+  // execute the action
+  // log out (change profile)
+  // check values
+
+export const quotelineTest = async(quoteId, profile, quantity, discount, license_model, driver) => {
 
     // Open the sandbox
-    let driver = new Builder()
-        .forBrowser('chrome').build();
-
     await (await driver).manage().setTimeouts({ implicit:10000 });
     await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/page/home');
 
@@ -27,8 +33,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
 
     // modify and login with the owner account
-    // await switchAccount(quoteId, 'login', driver, profile);
-    // driver.quit();
+    await switchAccount(quoteId, 'login', driver, profile);
 
     // Check the status of the quote
     try {
@@ -72,7 +77,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
 
     // Switch iframe
     // await driver.wait(until.ableToSwitchToFrame(By.xpath("//iframe")), 20000);
-    const frame = await driver.wait(until.elementLocated(By.xpath("//iframe")));
+    const frame = await driver.wait(until.elementLocated(By.xpath("//iframe")),20000);
     await (await driver).switchTo().frame(frame);
 
     // Check add product button
@@ -130,7 +135,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     
     // Check select button
     try {
-        await driver.wait(until.elementLocated(By.xpath("//paper-button[@id='plSelect']")), 20000);
+        await driver.wait(until.elementLocated(By.xpath("//paper-button[@id='plSelect']")), 30000);
     }
     catch (e) {
         console.log(e);
@@ -139,7 +144,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
 
     // Pick up the first product with License Model "Subscription"
     try {
-        await driver.wait(until.elementLocated(By.xpath("(//sb-table-cell[@item='Product2.License_Model__c']/div/sb-field/span/div/span[.='" + license_model + "'])[1]/preceding::div[@id='checkboxContainer'][1]")), 20000).click();
+        await driver.wait(until.elementLocated(By.xpath("(//sb-table-cell[@item='Product2.License_Model__c']/div/sb-field/span/div/span[.='" + license_model + "'])[1]/preceding::div[@id='checkboxContainer'][1]")), 30000).click();
     }
     catch (e) {
         console.log("No product with License Model " + "\"" +license_model + "\"" + "!");
@@ -425,42 +430,10 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     
 
     // // submit for approval ???
-    await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
-    await quote_submit(quoteId, driver);
+    // await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+    // await quote_submit(quoteId, driver);
 
-    try {
-      await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000))
-        .getText()
-        .then((text) => {
-            if (text === 'In Review') {
-                console.log("Status checked after submission!");
-            }
-            else throw new Error('Status not checked after submission!');
-        });
-    }
-    catch(e) {
-        const text = await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000)).getText();
-        console.log("Status checked failed, Status - expected: In Review, value: " + text);
-        await driver.quit();
-        process.exit(1);
-    }
     
-    try {
-      await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000)
-        .getText()
-        .then(text => {
-            if (text === 'In Progress Quote') {
-            console.log("Record Type checked after submission!");
-            }
-            else throw new Error('Record Type not checked after submission!');
-        });
-    }
-    catch (e) {
-        const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
-        console.log("RecordType checked failed, RecordType - expected: In Progress Quote, value: " + text);
-        await driver.quit();
-        process.exit(1);
-    }
 
     // // check more values
     //     // quote page - Marketplace Integration Stage, Marketplace Integration - Last Updated, Shopify URL
@@ -487,6 +460,8 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     // await (await driver).sleep(5000);
     // await switchAccount(quoteId, 'logout', driver);
 
+    // login with the approver
+
     
     // Approve this quote
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/' + quoteId + '/related/Approvals__r/view');
@@ -511,52 +486,54 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
         console.log(e);
     }
     await (await driver).sleep(5000);
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("//input[@value='Approve']")), 20000)).click();
-    }
-    catch (e) {
-        console.log(e);
-    }
+    // try {
+    //     await (await driver.wait(until.elementLocated(By.xpath("//input[@value='Approve']")), 20000)).click();
+    // }
+    // catch (e) {
+    //     console.log(e);
+    // }
 
     await (await driver).sleep(5000);
+
+    // logout approver
 
     // login with owner user?
     // await switchAccount(quoteId, 'login', driver, profile);
 
     // check status and recordType
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000))
-          .getText()
-          .then((text) => {
-              if (text === 'Approved') {
-                  console.log("Status checked - Approved!");
-              }
-              else throw new Error('Status not approved!');
-        });
-    }
-    catch(e) {
-          const text = await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000)).getText();
-          console.log("Status checked failed, Status - expected: Approved, value: " + text);
-          await driver.quit();
-          process.exit(1);
-    }
+    // try {
+    //     await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000))
+    //       .getText()
+    //       .then((text) => {
+    //           if (text === 'Approved') {
+    //               console.log("Status checked - Approved!");
+    //           }
+    //           else throw new Error('Status not approved!');
+    //     });
+    // }
+    // catch(e) {
+    //       const text = await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000)).getText();
+    //       console.log("Status checked failed, Status - expected: Approved, value: " + text);
+    //       await driver.quit();
+    //       process.exit(1);
+    // }
       
-    try {
-        await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000)
-          .getText()
-          .then(text => {
-              if (text === 'Approved Quote') {
-              console.log("Record Type - Approved!");
-              }
-              else throw new Error('Record Type not approved!');
-          });
-    }
-    catch (e) {
-          const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
-          console.log("RecordType checked failed, RecordType - expected: Approved Quote, value: " + text);
-          await driver.quit();
-          process.exit(1);
-    }
+    // try {
+    //     await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000)
+    //       .getText()
+    //       .then(text => {
+    //           if (text === 'Approved Quote') {
+    //           console.log("Record Type - Approved!");
+    //           }
+    //           else throw new Error('Record Type not approved!');
+    //       });
+    // }
+    // catch (e) {
+    //       const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
+    //       console.log("RecordType checked failed, RecordType - expected: Approved Quote, value: " + text);
+    //       await driver.quit();
+    //       process.exit(1);
+    // }
 
     // each quote lines - three values!!!
     // await checkEachLine();
@@ -635,7 +612,7 @@ const checkEachLine = async(quoteId) => {
 
 }
 
-export const switchAccount = async(quoteId, action, driver, profile) => {
+const switchAccount = async(quoteId, action, driver, profile) => {
     // https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/0051I000001y4soQAA?noredirect=1&isUserEntityOverride=1
     if (action === 'login') {
         console.log('Logging in with owner account...')
@@ -647,9 +624,20 @@ export const switchAccount = async(quoteId, action, driver, profile) => {
         await driver.sleep(5000);
         await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
     }
-    await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]")), 20000).click();
-    await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
-
+    await driver.sleep(5000);
+    try {
+      console.log('Finding Quote Owner...');
+      await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+      await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+    }
+    catch(e) {
+        // const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
+        console.log("Finding Owner Failed: " + e);
+        await driver.quit();
+        process.exit(1);
+    }
+    
+   
     // switch to iframe & eidt
     await driver.sleep(5000);
     await (await driver).switchTo().defaultContent();
@@ -678,7 +666,7 @@ export const switchAccount = async(quoteId, action, driver, profile) => {
         console.log("Origin profile: " + origin_profile);
         await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(origin_profile);
     }
-
+   
     // save
     await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
     //switch to iframe & login
@@ -696,9 +684,8 @@ export const switchAccount = async(quoteId, action, driver, profile) => {
         await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
     }
     console.log(action + ' completed!');
+    await (await driver).sleep(5000);
 }
-
-
 
 
 
