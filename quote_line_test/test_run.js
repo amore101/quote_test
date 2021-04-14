@@ -18,3 +18,9 @@ quotelineTest(args[0], args[1], args[2], args[3], arg_4);
 // quoteId, profile, quantity, discount, license_model
 
 // node --experimental-modules test_run a0p2g000001ZBh8AAG Renewals 2 20 Subscription
+
+// change back the profile if test fails
+
+// friday
+
+// from AVC TCV - open oppotunity to check
