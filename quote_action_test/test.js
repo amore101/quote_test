@@ -87,8 +87,6 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         process.exit(1);
       }
 
-      
- 
       // log in with the owner account
       await switchAccount(quoteId, 'login', driver, profile);
 
@@ -172,7 +170,7 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000))
         .getText()
         .then((text) => {
-            if (text === 'Approved') {
+            if (text === 'Approved' || text === 'In Review') {
               console.log("Status checked before recalled!");
             }
             else throw new Error('Status not checked before recalled!');
@@ -180,7 +178,7 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
       }
       catch(e) {
         const text = await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000)).getText();
-        console.log("Status checked failed, Status - expected: Approved, value: " + text);
+        console.log("Status checked failed, Status - expected: Approved/In Review, value: " + text);
         await driver.quit();
         process.exit(1);
       }
@@ -189,7 +187,7 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
         await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000)
         .getText()
         .then(text => {
-          if (text === 'Approved Quote') {
+          if (text === 'Approved Quote' || text === 'In Progress Quote') {
             console.log("Record Type checked before recalled!");
           }
           else throw new Error('Record Type not checked before recalled!');
@@ -197,7 +195,7 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
       }
       catch (e) {
         const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
-        console.log("RecordType checked failed, RecordType - expected: Approved Quote, value: " + text);
+        console.log("RecordType checked failed, RecordType - expected: Approved Quote/In Progress Quote, value: " + text);
         await driver.quit();
         process.exit(1);
       }
