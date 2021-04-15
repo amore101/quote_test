@@ -7,10 +7,10 @@ dotenv.config();
 const account = process.env.ACCOUNT;
 const password = process.env.PASSWORD;
 
-let x = '';
-const QLE_Test = async(x) => {
+let x = '11';
+const QLE_Test = async() => {
     console.log(x);
-    x += '2';
+    x -= x;
     console.log(x);
 
 
@@ -46,7 +46,7 @@ const QLE_Test = async(x) => {
 
 
 const args = process.argv.slice(2);
-QLE_Test(x);
+QLE_Test();
 
 console.log(x);
 // console.log(typeof(x.toString()));

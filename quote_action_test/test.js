@@ -27,15 +27,6 @@ export const quotesTest = async(quoteId, action, profile, driver) => {
     console.log('Action: ' + action);
     console.log('Profile: ' + profile);
  
-    // open the sandbox
-    await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/page/home');
- 
-    // log in with email and password
-    await driver.findElement(By.css('#email')).sendKeys(account);
-    await driver.findElement(By.css('#next')).click();
-    await driver.wait(until.elementLocated(By.css('#password'))).sendKeys(password);
-    await driver.wait(until.elementLocated(By.css('#taLogin'))).click();
- 
     // get quote by url (id)
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
  
@@ -270,7 +261,9 @@ const switchAccount = async(quoteId, action, driver, profile) => {
   // get current user
   try {
     await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+    await driver.sleep(2000);
     curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
+    await driver.sleep(2000);
     await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
   }
   catch(e) {
@@ -294,8 +287,17 @@ const switchAccount = async(quoteId, action, driver, profile) => {
       // find the owner
       try {
         console.log('Finding Quote Owner...');
-        await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
-        await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+        await driver.sleep(5000);
+        let element = driver.findElement(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span"));
+        await driver.actions().click(element).perform();
+        console.log('owner user clicked');
+        await driver.sleep(5000);
+        console.log('before user details clicked');
+        let element2 = driver.findElement(By.xpath("(//div[.='User Detail'])[last()]"));
+        await driver.actions().click(element2).perform();
+        console.log('user details clicked');
+        // await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+        // await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
       }
       catch(e) {
           console.log("Finding Owner Failed: " + e);
@@ -310,7 +312,7 @@ const switchAccount = async(quoteId, action, driver, profile) => {
       let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
       origin_profile += curr_profile;
       console.log("Origin profile: " + origin_profile);
-      await (await driver).sleep(2000);
+      await (await driver).sleep(5000);
       await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
       // sleep
       await (await driver).sleep(5000);
@@ -318,6 +320,7 @@ const switchAccount = async(quoteId, action, driver, profile) => {
       await (await driver).switchTo().defaultContent();
       const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
       await (await driver).switchTo().frame(frame2);
+      await (await driver).sleep(5000);
       await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
 
       // save
@@ -371,10 +374,13 @@ const switchAccount = async(quoteId, action, driver, profile) => {
       await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
       await (await driver).sleep(5000);
       await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+      owner -= owner;
+      origin_profile -= origin_profile;
     }
   }
   console.log(action + ' completed!');
   await (await driver).sleep(5000);
 }
  
+// https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/0051I000006lPqHQAU?noredirect=1&isUserEntityOverride=1
 

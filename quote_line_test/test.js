@@ -5,35 +5,44 @@ import 'chromedriver';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const account = process.env.ACCOUNT;
-const password = process.env.PASSWORD;
 
+
+let owner = '';
+let origin_profile = '';
+let approver = '';
 
 // Outline - quotelineTest
   // take quoteId, profile, quantity, discount,license_model and driver as parameters
   // check values in the quote page
-  // switch to the owner account (change profile)
-  // execute the action
-  // log out (change profile)
+  // login owner account (change profile)
+  // edit lines
+    // add product
+    // change quantity and discount
+    // cancel product
+  // check values --- !!!
+  // submit for approval
+  // log out owner (change profile)
   // check values
+  // login approver
+  // approve action
+  // logout approver
+  // login owner
+  // check values
+
+  // shopify
+
 
 export const quotelineTest = async(quoteId, profile, quantity, discount, license_model, driver) => {
 
-    // Open the sandbox
-    await (await driver).manage().setTimeouts({ implicit:10000 });
-    await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/page/home');
-
-    // Log in with email and password
-    await driver.findElement(By.css('#email')).sendKeys(account);
-    await driver.findElement(By.css('#next')).click();
-    await driver.wait(until.elementLocated(By.css('#password'))).sendKeys(password);
-    await driver.wait(until.elementLocated(By.css('#taLogin'))).click();
+    // all parameters
+    console.log('Quote Id: ' + quoteId);
+    console.log('Profile: ' + profile);
+    console.log('Quanity: ' + quantity);
+    console.log('Discount: ' + discount);
+    console.log('License Model: ' + license_model);
 
     // Get quote by url (id)
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
-
-    // modify and login with the owner account
-    await switchAccount(quoteId, 'login', driver, profile);
 
     // Check the status of the quote
     try {
@@ -62,6 +71,9 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     console.log("Net Amount: " + net_amount);
     console.log("Total ACV: " + total_ACV);
 
+    // modify and login with the owner account
+    await switchToOwner(quoteId, 'login', driver, profile);
+
     // Eidt lines
     try {
         await driver.wait(until.elementLocated(By.xpath("//runtime_platform_actions-action-renderer[@apiname='Edit_Lines']")), 20000)
@@ -76,7 +88,6 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     }
 
     // Switch iframe
-    // await driver.wait(until.ableToSwitchToFrame(By.xpath("//iframe")), 20000);
     const frame = await driver.wait(until.elementLocated(By.xpath("//iframe")),20000);
     await (await driver).switchTo().frame(frame);
 
@@ -242,8 +253,6 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
         // driver.quit();
     }
 
-// Cancel a renewed line
-
     // Find the first renewed line & Change the quantity to 0
     try {
         await (await driver.wait(until.elementLocated(By.xpath("(//div[@field='Line_Status__c']/div[.='Renewed'])[1]/following::div[@field='Custom_Quantity__c'][1]")), 20000)).click();
@@ -257,7 +266,6 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
         console.log(e);
         // driver.quit();
     }
-
 
     // Click calculate
     await driver.wait(until.elementLocated(By.xpath("//sb-custom-action/paper-button[text()='Calculate']")), 15000)
@@ -322,16 +330,17 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
         .then(console.log("Saving..."));
 
     // Continue if alert
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("//paper-button[@id='continue']")), 15000)).click()
-    }
-    catch(e) {
+    // try {
+    //     await (await driver.wait(until.elementLocated(By.xpath("//paper-button[@id='continue']")), 15000)).click()
+    // }
+    // catch(e) {
 
-    }
+    // }
 
     // Wait for data update
     await (await driver).sleep(10000);
 
+    {// --- !!!
     // Validate Net Amount and Total ACV
     // try {
     //     await (await driver.wait(until.elementLocated(By.xpath("//*[@id='brandBand_2']/div/div/div[1]/div/one-record-home-flexipage2/forcegenerated-adgrollup_component___forcegenerated__flexipage_recordpage___quote_record_page___sbqq__quote__c___view/forcegenerated-flexipage_quote_record_page_sbqq__quote__c__view_js/record_flexipage-record-page-decorator/div[1]/slot/flexipage-record-home-template-desktop2/div/div[1]/slot/slot/flexipage-component2/slot/records-lwc-highlights-panel/records-lwc-record-layout/forcegenerated-highlightspanel_sbqq__quote__c___0121i000000p2ctqaq___compact___view___recordlayout2/force-highlights2/div[1]/div[2]/slot/slot/force-highlights-details-item[2]/div/p[2]/slot/records-formula-output/slot/lightning-formatted-text")), 20000))
@@ -380,58 +389,103 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     //     console.log("Net total check failed after calculation, Net Total - expected: USD " + total1 + ", value: USD " + total2);
     //     driver.quit();
     // }
+    }
 
-    // Validate Quote Lines (Line Status & Product Name)
+
+    // submit for approval
+    await quotesTest(quoteId, 'submit', 'Renewals', driver);
+
+    // login approver
+    await switchToApprover(quoteId, 'login', driver);
+
+    // Approve this quote
+    try {
+        await (await driver.wait(until.elementLocated(By.xpath("(//tr/td[4][.='Requested'])[1]/preceding::a[2]")), 20000)).click();
+    }
+    catch (e) {
+        console.log(e);
+    }
+    await (await driver).sleep(5000);
+    try {
+        await (await driver.wait(until.elementLocated(By.xpath("//lightning-button/button[.='Approve']")), 20000)).click();
+    }
+    catch (e) {
+        console.log(e);
+    }
+    await (await driver).sleep(5000);
+    try {
+        await (await driver.wait(until.elementLocated(By.xpath("//textarea")), 20000)).sendKeys("Approved");
+    }
+    catch (e) {
+        console.log(e);
+    }
+    await (await driver).sleep(2000);
+    try {
+        await (await driver.wait(until.elementLocated(By.xpath("//input[@value='Approve']")), 20000)).click();
+    }
+    catch (e) {
+        console.log(e);
+    }
+    await (await driver).sleep(5000);
+
+    // log out approver
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/' + quoteId +'/related/SBQQ__LineItems__r/view')
-        .then(console.log("Opening Quote Lines"));
+    await switchToApprover(quoteId, 'logout', driver);
 
-    try {
-        await (await driver).sleep(5000);
-        await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[2]/span/span")), 20000))
-            .getText()
-            .then((text) => {
-                if (text === 'New') {
-                    console.log("Line Status checked!");
-                }
-                else throw new Error('Line Status does not match!');
-            });
-    }
-    catch(e) {
-        const text = await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[2]/span/span")), 20000)).getText();
-        console.log("Line Status check failed, Line Status - expected: " + "New" + ", value: " + text);
-        driver.quit();
-    }
+    // log in owner
+    // await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/' + quoteId +'/related/SBQQ__LineItems__r/view')
+    // await switchToOwner(quoteId, 'login', driver, profile);
 
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[3]/span/span")), 20000))
-        .getText()
-        .then((text) => {
-            const v1 = text.split(' - ');
-            const v2 = v1[0].replace('™', '');
-            const v3 = name.replace('™', '');
-            const v4 = name.replace('™', ' ');
-            if (v2 === v3 || v2 === v4) {
-              console.log("Product Name checked!");
-            }
-            else throw new Error('Product Name does not match!');
-        });
-    }
-    catch(e) {
-        const text = await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[3]/span/span")), 20000)).getText();
-        console.log("Product Name check failed, Product Name - expected: " + name + ", value: " + text);
-        driver.quit();
-    }
-    console.log('Product is added to Quote Lines!');
+
+
+
+    // // Validate Quote Lines (Line Status & Product Name)
+    // await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/' + quoteId +'/related/SBQQ__LineItems__r/view')
+    //     .then(console.log("Opening Quote Lines"));
+
+    // try {
+    //     await (await driver).sleep(5000);
+    //     await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[2]/span/span")), 20000))
+    //         .getText()
+    //         .then((text) => {
+    //             if (text === 'New') {
+    //                 console.log("Line Status checked!");
+    //             }
+    //             else throw new Error('Line Status does not match!');
+    //         });
+    // }
+    // catch(e) {
+    //     const text = await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[2]/span/span")), 20000)).getText();
+    //     console.log("Line Status check failed, Line Status - expected: " + "New" + ", value: " + text);
+    //     driver.quit();
+    // }
+
+    // try {
+    //     await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[3]/span/span")), 20000))
+    //     .getText()
+    //     .then((text) => {
+    //         const v1 = text.split(' - ');
+    //         const v2 = v1[0].replace('™', '');
+    //         const v3 = name.replace('™', '');
+    //         const v4 = name.replace('™', ' ');
+    //         if (v2 === v3 || v2 === v4) {
+    //           console.log("Product Name checked!");
+    //         }
+    //         else throw new Error('Product Name does not match!');
+    //     });
+    // }
+    // catch(e) {
+    //     const text = await (await driver.wait(until.elementLocated(By.xpath("(//tr)[last()-1]/td[3]/span/span")), 20000)).getText();
+    //     console.log("Product Name check failed, Product Name - expected: " + name + ", value: " + text);
+    //     driver.quit();
+    // }
+    // console.log('Product is added to Quote Lines!');
 
     // each quote lines - three values!!!
     // await checkEachLine();
 
 
     
-
-    // // submit for approval ???
-    // await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
-    // await quote_submit(quoteId, driver);
 
     
 
@@ -455,50 +509,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     //         process.exit(1);
     //       }
 
-    // logout and modify the owner account
-    // await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
-    // await (await driver).sleep(5000);
-    // await switchAccount(quoteId, 'logout', driver);
-
-    // login with the approver
-
     
-    // Approve this quote
-    await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/' + quoteId + '/related/Approvals__r/view');
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("(//tr/td[4][.='Requested'])[1]/preceding::a[2]")), 20000)).click();
-    }
-    catch (e) {
-        console.log(e);
-    }
-    await (await driver).sleep(5000);
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("//lightning-button/button[.='Approve']")), 20000)).click();
-    }
-    catch (e) {
-        console.log(e);
-    }
-    await (await driver).sleep(5000);
-    try {
-        await (await driver.wait(until.elementLocated(By.xpath("//textarea")), 20000)).sendKeys("Approved");
-    }
-    catch (e) {
-        console.log(e);
-    }
-    await (await driver).sleep(5000);
-    // try {
-    //     await (await driver.wait(until.elementLocated(By.xpath("//input[@value='Approve']")), 20000)).click();
-    // }
-    // catch (e) {
-    //     console.log(e);
-    // }
-
-    await (await driver).sleep(5000);
-
-    // logout approver
-
-    // login with owner user?
-    // await switchAccount(quoteId, 'login', driver, profile);
 
     // check status and recordType
     // try {
@@ -612,81 +623,182 @@ const checkEachLine = async(quoteId) => {
 
 }
 
-const switchAccount = async(quoteId, action, driver, profile) => {
-    // https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/0051I000001y4soQAA?noredirect=1&isUserEntityOverride=1
+const switchToApprover = async(quoteId, action, driver) => {
+    let curr_user = '';
+    // get current user
+    try {
+      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
+      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+    }
+    catch(e) {
+      console.log("Check current account failed!");
+      console.log(e);
+    }
+    await driver.sleep(5000);
+  
     if (action === 'login') {
-        console.log('Logging in with owner account...')
+      console.log('Logging in with approver account...')
+      // get approver
+      try {
+        approver = await driver.wait(until.elementLocated(By.xpath("//span[.='Sales Ops Approver']/following::a[1]/span")), 20000).getText();
+      }
+      catch(e) {
+        console.log("Check approver failed!");
+        console.log(e);
+      }
+      if (approver === curr_user) console.log("Already logged in! Approver: " + approver);
+      else {
+        // find the approver
+        try {
+          console.log('Finding Quote Approver...');
+          await driver.wait(until.elementLocated(By.xpath("//span[.='Sales Ops Approver']/following::a[1]/span")), 20000).click();
+          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+        }
+        catch(e) {
+            console.log("Finding Owner Failed: " + e);
+            await driver.quit();
+            process.exit(1);
+        }
+        await driver.sleep(5000);
+        // log in
+        await (await driver).switchTo().defaultContent();
+        const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+        await (await driver).switchTo().frame(frame1);
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='login']")), 20000).click();
+        await (await driver).sleep(5000);
+        await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+      }
     }
     else if (action === 'logout') {
-        console.log('Logging out from owner account...');
+      console.log('Logging out from approver account...');
+      if (approver !== curr_user) console.log("Already logged out! Approver: " + approver);
+      else {
+        // log out
         await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
         await driver.wait(until.elementLocated(By.xpath("//a[@class='profile-link-label logout uiOutputURL']")), 20000).click();
         await driver.sleep(5000);
         await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+      }
+      approver -= approver;
     }
-    await driver.sleep(5000);
+    console.log('Approver' + action + ' completed!');
+    await (await driver).sleep(5000);
+}
+
+const switchToOwner = async(quoteId, action, driver, profile) => {
+    let curr_user = '';
+    // get current user
     try {
-      console.log('Finding Quote Owner...');
-      await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
-      await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
+      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
     }
     catch(e) {
-        // const text = await driver.wait(until.elementLocated(By.xpath("//span[@force-recordtype_recordtype='']")), 10000).getText();
-        console.log("Finding Owner Failed: " + e);
-        await driver.quit();
-        process.exit(1);
+      console.log("Check current account failed!");
+      console.log(e);
     }
-    
-   
-    // switch to iframe & eidt
     await driver.sleep(5000);
-    await (await driver).switchTo().defaultContent();
-    const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
-    await (await driver).switchTo().frame(frame1);
-    let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
+  
     if (action === 'login') {
+      console.log('Logging in with owner account...')
+      // get owner
+      try {
+        owner = await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).getText();
+      }
+      catch(e) {
+        console.log("Check owner failed!");
+        console.log(e);
+      }
+      if (owner === curr_user) console.log("Already logged in!");
+      else {
+        // find the owner
+        try {
+          console.log('Finding Quote Owner...');
+          await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+        }
+        catch(e) {
+            console.log("Finding Owner Failed: " + e);
+            await driver.quit();
+            process.exit(1);
+        }
+        await driver.sleep(5000);
+        // get origin_profile and edit
+        await (await driver).switchTo().defaultContent();
+        const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+        await (await driver).switchTo().frame(frame1);
+        let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
         origin_profile += curr_profile;
-    }
-    console.log("Origin profile: " + origin_profile);
-    await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
-    // sleep
-    await (await driver).sleep(5000);
-    //switch to iframe & modify profile
-    await (await driver).switchTo().defaultContent();
-    const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
-    await (await driver).switchTo().frame(frame2);
-    if (action === 'login') {
-        // get the origin profile ???
-        await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
-        // await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys('Renewals');
-    }
-    else if (action === 'logout') {
-        // ???
-        // await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys('Read Only');
         console.log("Origin profile: " + origin_profile);
-        await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(origin_profile);
-    }
-   
-    // save
-    await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
-    //switch to iframe & login
-    if (action === 'login') {
+        await (await driver).sleep(2000);
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
+        // sleep
         await (await driver).sleep(5000);
+        //switch to iframe & modify profile
+        await (await driver).switchTo().defaultContent();
+        const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+        await (await driver).switchTo().frame(frame2);
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
+  
+        // save
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
+        await (await driver).sleep(5000);
+  
+        // log in
         await (await driver).switchTo().defaultContent();
         const frame3 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
         await (await driver).switchTo().frame(frame3);
         await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='login']")), 20000).click();
         await (await driver).sleep(5000);
         await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+      }
     }
     else if (action === 'logout') {
+      console.log('Logging out from owner account...');
+      if (owner !== curr_user) console.log("Already logged out!");
+      else {
+        // log out
+        await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+        await driver.wait(until.elementLocated(By.xpath("//a[@class='profile-link-label logout uiOutputURL']")), 20000).click();
+        await driver.sleep(5000);
+        await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+        // find the owner
+        try {
+          console.log('Finding Quote Owner...');
+          await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+        }
+        catch(e) {
+            console.log("Finding Owner Failed: " + e);
+            await driver.quit();
+            process.exit(1);
+        }
+        // switch to iframe & eidt
+        await driver.sleep(5000);
+        await (await driver).switchTo().defaultContent();
+        const frame1 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+        await (await driver).switchTo().frame(frame1);
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
+        // sleep
+        await (await driver).sleep(5000);
+        //switch to iframe & modify profile
+        await (await driver).switchTo().defaultContent();
+        const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
+        await (await driver).switchTo().frame(frame2);
+        console.log("Origin profile: " + origin_profile);
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(origin_profile);
+        // save
+        await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
         await (await driver).sleep(5000);
         await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+        owner -= owner;
+        origin_profile -= origin_profile;
+      }
     }
     console.log(action + ' completed!');
     await (await driver).sleep(5000);
 }
-
 
 
 
