@@ -62,6 +62,8 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     }
 
     // Get start date, end date Net Amount and Total ACV
+    owner = await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).getText();
+    console.log("Owner: " + owner);
     const startDate = await (await driver.wait(until.elementLocated(By.xpath("//div/span[.='Start Date']/following::lightning-formatted-text")), 20000)).getText();
     const endDate = await (await driver.wait(until.elementLocated(By.xpath("//div/span[.='End Date']/following::lightning-formatted-text")), 20000)).getText();
     const net_amount = await (await driver.wait(until.elementLocated(By.xpath("//*[@id='brandBand_2']/div/div/div[1]/div/one-record-home-flexipage2/forcegenerated-adgrollup_component___forcegenerated__flexipage_recordpage___quote_record_page___sbqq__quote__c___view/forcegenerated-flexipage_quote_record_page_sbqq__quote__c__view_js/record_flexipage-record-page-decorator/div[1]/slot/flexipage-record-home-template-desktop2/div/div[1]/slot/slot/flexipage-component2/slot/records-lwc-highlights-panel/records-lwc-record-layout/forcegenerated-highlightspanel_sbqq__quote__c___0121i000000p2ctqaq___compact___view___recordlayout2/force-highlights2/div[1]/div[2]/slot/slot/force-highlights-details-item[2]/div/p[2]/slot/records-formula-output/slot/lightning-formatted-text")), 20000)).getText();
@@ -627,12 +629,14 @@ const switchToApprover = async(quoteId, action, driver) => {
     let curr_user = '';
     // get current user
     try {
-      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
-      curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
-      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+        await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+        await driver.sleep(2000);
+        curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
+        await driver.sleep(2000);
+        await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
     }
     catch(e) {
-      console.log("Check current account failed!");
+      console.log("Check current account failed! - Approver");
       console.log(e);
     }
     await driver.sleep(5000);
@@ -652,8 +656,11 @@ const switchToApprover = async(quoteId, action, driver) => {
         // find the approver
         try {
           console.log('Finding Quote Approver...');
-          await driver.wait(until.elementLocated(By.xpath("//span[.='Sales Ops Approver']/following::a[1]/span")), 20000).click();
-          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+          await driver.sleep(5000);
+          let element = driver.findElement(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span"));
+          await driver.actions().click(element).perform();
+          const userId = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'User ID')]/following::div[1]/span/span")), 20000).getText();
+          await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/'+ userId +'?noredirect=1&isUserEntityOverride=1');
         }
         catch(e) {
             console.log("Finding Owner Failed: " + e);
@@ -690,12 +697,19 @@ const switchToOwner = async(quoteId, action, driver, profile) => {
     let curr_user = '';
     // get current user
     try {
-      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      await driver.sleep(2000);
+      let userImg = driver.findElement(By.xpath("(//span[@class='uiImage'])[1]"));
+      await driver.actions().click(userImg).perform();
+      // await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      await driver.sleep(2000);
       curr_user += await driver.wait(until.elementLocated(By.xpath("//h1[@class='profile-card-name']/a")), 20000).getText();
-      await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
+      await driver.sleep(2000);
+      await driver.actions().click(userImg).perform();
+      console.log("Current User: " + curr_user);
+      //await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
     }
     catch(e) {
-      console.log("Check current account failed!");
+      console.log("Check current account failed! - Owner");
       console.log(e);
     }
     await driver.sleep(5000);
@@ -703,20 +717,18 @@ const switchToOwner = async(quoteId, action, driver, profile) => {
     if (action === 'login') {
       console.log('Logging in with owner account...')
       // get owner
-      try {
-        owner = await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).getText();
-      }
-      catch(e) {
-        console.log("Check owner failed!");
-        console.log(e);
-      }
       if (owner === curr_user) console.log("Already logged in!");
       else {
         // find the owner
         try {
           console.log('Finding Quote Owner...');
-          await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
-          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+          await driver.sleep(5000);
+          let element = driver.findElement(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span"));
+          await driver.actions().click(element).perform();
+          const userId = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'User ID')]/following::div[1]/span/span")), 20000).getText();
+          await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/'+ userId +'?noredirect=1&isUserEntityOverride=1');
+          // await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+          // await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
         }
         catch(e) {
             console.log("Finding Owner Failed: " + e);
@@ -731,7 +743,7 @@ const switchToOwner = async(quoteId, action, driver, profile) => {
         let curr_profile = await driver.wait(until.elementLocated(By.xpath("//td[.='Profile']/following::td[1]/a")), 20000).getText();
         origin_profile += curr_profile;
         console.log("Origin profile: " + origin_profile);
-        await (await driver).sleep(2000);
+        await (await driver).sleep(5000);
         await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='edit']")), 20000).click();
         // sleep
         await (await driver).sleep(5000);
@@ -739,13 +751,22 @@ const switchToOwner = async(quoteId, action, driver, profile) => {
         await (await driver).switchTo().defaultContent();
         const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
         await (await driver).switchTo().frame(frame2);
+        await (await driver).sleep(5000);
         await driver.wait(until.elementLocated(By.xpath("//*[@id='Profile']")), 20000).sendKeys(profile);
   
         // save
         await driver.wait(until.elementLocated(By.xpath("//*[@id='topButtonRow']/input[@name='save']")), 20000).click();
         await (await driver).sleep(5000);
+
+        //
+        let exist = await driver.findElements(By.xpath("//span[contains(text(), 'User ID')]/following::div[1]/span/span"));
+        if (exist.length > 0) {
+          const userId = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'User ID')]/following::div[1]/span/span")), 20000).getText();
+          await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/'+ userId +'?noredirect=1&isUserEntityOverride=1');
+        }
   
         // log in
+        await (await driver).sleep(5000);
         await (await driver).switchTo().defaultContent();
         const frame3 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
         await (await driver).switchTo().frame(frame3);
@@ -766,8 +787,13 @@ const switchToOwner = async(quoteId, action, driver, profile) => {
         // find the owner
         try {
           console.log('Finding Quote Owner...');
-          await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
-          await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
+          await driver.sleep(5000);
+          let element = driver.findElement(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span"));
+          await driver.actions().click(element).perform();
+          const userId = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'User ID')]/following::div[1]/span/span")), 20000).getText();
+          await driver.get('https://tibcocpq--sandbox.lightning.force.com/lightning/setup/ManageUsers/page?address=/'+ userId +'?noredirect=1&isUserEntityOverride=1');
+          // await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).click();
+          // await driver.wait(until.elementLocated(By.xpath("//div[@title='User Detail']")), 20000).click();
         }
         catch(e) {
             console.log("Finding Owner Failed: " + e);
