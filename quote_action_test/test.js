@@ -188,7 +188,7 @@ export const quotesTest = async(quoteId, action, ownerId, driver, stage) => {
       }
  
       // log in with the owner account
-      await switchAccount(quoteId, 'login', driver, profile);
+      await switchAccount(quoteId, 'login', driver, ownerId);
  
       // click recall button
       await (await driver.wait(until.elementLocated(By.xpath("//button[@name='SBQQ__Quote__c.AARecall']")),10000))
@@ -206,7 +206,7 @@ export const quotesTest = async(quoteId, action, ownerId, driver, stage) => {
       }
  
       // log out
-      await switchAccount(quoteId, 'logout', driver, profile);
+      await switchAccount(quoteId, 'logout', driver, ownerId);
  
       // check status & recordType after recalled
       try {
@@ -254,6 +254,7 @@ export const quotesTest = async(quoteId, action, ownerId, driver, stage) => {
  
 const switchAccount = async(quoteId, action, driver, ownerId) => {
   let curr_user = '';
+  let owner = '';
   // get current user
   try {
     await driver.sleep(2000);
@@ -281,7 +282,7 @@ const switchAccount = async(quoteId, action, driver, ownerId) => {
     await (await driver).switchTo().defaultContent();
     const frame2 = await driver.wait(until.elementLocated(By.xpath("//*[@id='setupComponent']/div[2]/div/div/force-aloha-page/div/iframe")));
     await (await driver).switchTo().frame(frame2);
-    let owner = await driver.wait(until.elementLocated(By.xpath("//td[.='Name']/following::td[1]")), 20000).getText();
+    owner += await driver.wait(until.elementLocated(By.xpath("//td[.='Name']/following::td[1]")), 20000).getText();
     console.log('Owner: ' + owner);
   }
   catch(e) {
@@ -318,6 +319,8 @@ const switchAccount = async(quoteId, action, driver, ownerId) => {
     // log out
     if (owner === curr_user) {
       try {
+        await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
+        await driver.sleep(5000);
         await driver.wait(until.elementLocated(By.xpath("(//span[@class='uiImage'])[1]")), 20000).click();
         await driver.wait(until.elementLocated(By.xpath("//a[@class='profile-link-label logout uiOutputURL']")), 20000).click();
       }
