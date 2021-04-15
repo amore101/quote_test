@@ -5,12 +5,6 @@ import 'chromedriver';
 import dotenv from 'dotenv';
 dotenv.config();
 
-
-
-let owner = '';
-let origin_profile = '';
-let approver = '';
-
 // Outline - quotelineTest
   // take quoteId, profile, quantity, discount,license_model and driver as parameters
   // check values in the quote page
@@ -32,11 +26,12 @@ let approver = '';
   // shopify
 
 
-export const quotelineTest = async(quoteId, profile, quantity, discount, license_model, driver) => {
+export const quotelineTest = async(quoteId, ownerId, approverId, quantity, discount, license_model, driver) => {
 
     // all parameters
-    console.log('Quote Id: ' + quoteId);
-    console.log('Profile: ' + profile);
+    console.log('Quote ID: ' + quoteId);
+    console.log('Owner ID: ' + ownerId);
+    console.log('Approver ID: ' + approverId);
     console.log('Quanity: ' + quantity);
     console.log('Discount: ' + discount);
     console.log('License Model: ' + license_model);
@@ -62,8 +57,6 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     }
 
     // Get start date, end date Net Amount and Total ACV
-    owner = await driver.wait(until.elementLocated(By.xpath("(//span[.='Owner']/following::force-hoverable-link/div/a)[1]/span")), 20000).getText();
-    console.log("Owner: " + owner);
     const startDate = await (await driver.wait(until.elementLocated(By.xpath("//div/span[.='Start Date']/following::lightning-formatted-text")), 20000)).getText();
     const endDate = await (await driver.wait(until.elementLocated(By.xpath("//div/span[.='End Date']/following::lightning-formatted-text")), 20000)).getText();
     const net_amount = await (await driver.wait(until.elementLocated(By.xpath("//*[@id='brandBand_2']/div/div/div[1]/div/one-record-home-flexipage2/forcegenerated-adgrollup_component___forcegenerated__flexipage_recordpage___quote_record_page___sbqq__quote__c___view/forcegenerated-flexipage_quote_record_page_sbqq__quote__c__view_js/record_flexipage-record-page-decorator/div[1]/slot/flexipage-record-home-template-desktop2/div/div[1]/slot/slot/flexipage-component2/slot/records-lwc-highlights-panel/records-lwc-record-layout/forcegenerated-highlightspanel_sbqq__quote__c___0121i000000p2ctqaq___compact___view___recordlayout2/force-highlights2/div[1]/div[2]/slot/slot/force-highlights-details-item[2]/div/p[2]/slot/records-formula-output/slot/lightning-formatted-text")), 20000)).getText();
@@ -74,7 +67,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     console.log("Total ACV: " + total_ACV);
 
     // modify and login with the owner account
-    await switchToOwner(quoteId, 'login', driver, profile);
+    await switchToOwner(quoteId, 'login', driver, ownerId);
 
     // Eidt lines
     try {
@@ -336,7 +329,6 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
     //     await (await driver.wait(until.elementLocated(By.xpath("//paper-button[@id='continue']")), 15000)).click()
     // }
     // catch(e) {
-
     // }
 
     // Wait for data update
@@ -395,7 +387,7 @@ export const quotelineTest = async(quoteId, profile, quantity, discount, license
 
 
     // submit for approval
-    await quotesTest(quoteId, 'submit', 'Renewals', driver);
+    await quotesTest(quoteId, 'submit', ownerId, driver);
 
     // login approver
     await switchToApprover(quoteId, 'login', driver);
