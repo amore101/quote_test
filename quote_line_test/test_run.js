@@ -42,3 +42,5 @@ const test_run = async() => {
 }
 
 test_run();
+
+// node test_run a0p2g000001ZD6FAAW 0051I000006lPqHQAU 0051I000001yEr7QAE 2 30 Subscription

@@ -28,6 +28,7 @@ const args = process.argv.slice(2);
 const test_run = async() => {
     await initialization(driver);
     await quotesTest(args[0], args[1], args[2], driver);
+    await (await driver).quit();
 }
 
 test_run();
