@@ -436,6 +436,9 @@ export const quotelineTest = async(quoteId, ownerId, approverId, quantity, disco
     // await driver.sleep(2000);
     // await switchAccount(quoteId, 'login', driver, ownerId);
 
+    // checkout shopify url
+    await checkout(quoteId, driver);
+
 
     // scroll down
     let approvals_sd = await driver.findElement(By.xpath("(//span[.='Approvals'])[1]"));
@@ -535,8 +538,7 @@ export const quotelineTest = async(quoteId, ownerId, approverId, quantity, disco
         console.log('Check finance checklist complete failed!' + e);
     }
 
-    // checkout shopify url
-    await checkout(quoteId, driver);
+    
 
 
     // // Validate Quote Lines (Line Status & Product Name)
