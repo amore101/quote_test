@@ -117,16 +117,25 @@ export const checkout = async(quoteId, driver) => {
 
     // get state and zip code
     try {
-        let state_select = await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000);
-        let zip_code = await driver.wait(until.elementLocated(By.xpath("//input[@placeholder='ZIP code']")),15000);
-        await state_select.getAttribute('value')
-            .then(text => {
-                console.log('State: ' + text);
+        await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000)
+            .then(options => {
+                options.map(option => {
+                    option.getText().then(text => {
+                        if (text == "AL")
+                            option.click();
+                    })
+                })
             });
-        await zip_code.getAttribute('value')
-            .then(text => {
-                console.log('Zip Code: ' + text);
-            });
+        // let state_select = await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000);
+        // let zip_code = await driver.wait(until.elementLocated(By.xpath("//input[@placeholder='ZIP code']")),15000);
+        // await state_select.getAttribute('value')
+        //     .then(text => {
+        //         console.log('State: ' + text);
+        //     });
+        // await zip_code.getAttribute('value')
+        //     .then(text => {
+        //         console.log('Zip Code: ' + text);
+        //     });
     }
     catch(e) {
         console.log('Getting state and zip code failed' + e);
