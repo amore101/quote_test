@@ -117,62 +117,54 @@ export const checkout = async(quoteId, driver) => {
 
     // get state and zip code
     try {
-        await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000)
-            .then(options => {
-                options.map(option => {
-                    option.getText().then(text => {
-                        if (text == "AL")
-                            option.click();
-                    })
-                })
+        let state_select = await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000);
+        let zip_code = await driver.wait(until.elementLocated(By.xpath("//input[@placeholder='ZIP code']")),15000);
+        await state_select.getAttribute('value')
+            .then(text => {
+                console.log('State: ' + text);
             });
-        // let state_select = await driver.wait(until.elementLocated(By.xpath("//select[@placeholder='State']")),15000);
-        // let zip_code = await driver.wait(until.elementLocated(By.xpath("//input[@placeholder='ZIP code']")),15000);
-        // await state_select.getAttribute('value')
-        //     .then(text => {
-        //         console.log('State: ' + text);
-        //     });
-        // await zip_code.getAttribute('value')
-        //     .then(text => {
-        //         console.log('Zip Code: ' + text);
-        //     });
+        await driver.actions().click(state_select).sendKeys('California').perform()
+        await zip_code.getAttribute('value')
+            .then(text => {
+                console.log('Zip Code: ' + text);
+            });
     }
     catch(e) {
         console.log('Getting state and zip code failed' + e);
     }
 
     // continue to shipping
-    try {
-        let continue_to_shipping = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to shipping']")),15000);
-        await driver.actions().click(continue_to_shipping).perform();
+    // try {
+    //     let continue_to_shipping = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to shipping']")),15000);
+    //     await driver.actions().click(continue_to_shipping).perform();
 
-        console.log('Continue to shipping...');
-    }
-    catch(e) {
-        console.log('Shipping failed!' + e);
-    }
+    //     console.log('Continue to shipping...');
+    // }
+    // catch(e) {
+    //     console.log('Shipping failed!' + e);
+    // }
 
     // continue to payment
-    try {
-        let continue_to_payment = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to payment']")),15000);
-        await driver.actions().click(continue_to_payment).perform();
+    // try {
+    //     let continue_to_payment = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to payment']")),15000);
+    //     await driver.actions().click(continue_to_payment).perform();
 
-        console.log('Continue to payment...');
-    }
-    catch(e) {
-        console.log('Payment failed!' + e);
-    }
+    //     console.log('Continue to payment...');
+    // }
+    // catch(e) {
+    //     console.log('Payment failed!' + e);
+    // }
 
-    // select order form
-    try {
-        let order_form = await driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Order Form')]")),15000);
-        await driver.actions().click(order_form).perform();
+    // // select order form
+    // try {
+    //     let order_form = await driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Order Form')]")),15000);
+    //     await driver.actions().click(order_form).perform();
 
-        console.log('Select Order Form');
-    }
-    catch(e) {
-        console.log('Selecting order form failed!' + e);
-    }
+    //     console.log('Select Order Form');
+    // }
+    // catch(e) {
+    //     console.log('Selecting order form failed!' + e);
+    // }
 
     // use a different billing address and check company is read only
     // try {
