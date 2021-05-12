@@ -5,11 +5,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const checkout = async(quoteId, driver) => {
-    // await Initialization(driver);
+    // checkout shopify url
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
     // wait for shopifyURL to be populated
-    // await driver.sleep(50000);
-    // await driver.navigate().refresh();
+    console.log('Sleep for one minute until we get the Shopify URL...')
+    await driver.sleep(5000);
+    await driver.navigate().refresh();
     await driver.sleep(2000);
     let shopifyURL = await driver.findElements(By.xpath("//span[.='Proceed to Order']"));
     let isPopulated = shopifyURL.length !== 0;
@@ -134,37 +135,37 @@ export const checkout = async(quoteId, driver) => {
     }
 
     // continue to shipping
-    // try {
-    //     let continue_to_shipping = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to shipping']")),15000);
-    //     await driver.actions().click(continue_to_shipping).perform();
+    try {
+        let continue_to_shipping = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to shipping']")),15000);
+        await driver.actions().click(continue_to_shipping).perform();
 
-    //     console.log('Continue to shipping...');
-    // }
-    // catch(e) {
-    //     console.log('Shipping failed!' + e);
-    // }
+        console.log('Continue to shipping...');
+    }
+    catch(e) {
+        console.log('Shipping failed!' + e);
+    }
 
     // continue to payment
-    // try {
-    //     let continue_to_payment = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to payment']")),15000);
-    //     await driver.actions().click(continue_to_payment).perform();
+    try {
+        let continue_to_payment = await driver.wait(until.elementLocated(By.xpath("//span[.='Continue to payment']")),15000);
+        await driver.actions().click(continue_to_payment).perform();
 
-    //     console.log('Continue to payment...');
-    // }
-    // catch(e) {
-    //     console.log('Payment failed!' + e);
-    // }
+        console.log('Continue to payment...');
+    }
+    catch(e) {
+        console.log('Payment failed!' + e);
+    }
 
-    // // select order form
-    // try {
-    //     let order_form = await driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Order Form')]")),15000);
-    //     await driver.actions().click(order_form).perform();
+    // select order form
+    try {
+        let order_form = await driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Order Form')]")),15000);
+        await driver.actions().click(order_form).perform();
 
-    //     console.log('Select Order Form');
-    // }
-    // catch(e) {
-    //     console.log('Selecting order form failed!' + e);
-    // }
+        console.log('Select Order Form');
+    }
+    catch(e) {
+        console.log('Selecting order form failed!' + e);
+    }
 
     // use a different billing address and check company is read only
     // try {

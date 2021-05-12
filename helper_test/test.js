@@ -172,3 +172,28 @@ QLE_Test();
 
 // if failed, log out
 // continue?
+
+
+// each quote lines - three values!!!
+    // await checkEachLine();
+
+
+    // // check more values
+    //     // quote page - Marketplace Integration Stage, Marketplace Integration - Last Updated, Shopify URL
+        
+    //     try {
+    //         await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Marketplace Integration Stage']/following::lightning-formatted-text")), 10000))
+    //         .getText()
+    //         .then((text) => {
+    //             if (text === 'In Progress') {
+    //               console.log("!");
+    //             }
+    //             else throw new Error('Status not checked bofore submission!');
+    //         });
+    //       }
+    //       catch(e) {
+    //         const text = await (await driver.wait(until.elementLocated(By.xpath("//div/span[. = 'Status']/following::lightning-formatted-text")), 10000)).getText();
+    //         console.log("Status checked failed, Status - expected: Draft or empty, value: " + text);
+    //         await driver.quit();
+    //         process.exit(1);
+    //       }
