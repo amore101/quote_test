@@ -47,17 +47,22 @@ export const checkout = async(quoteId, driver) => {
     await driver.actions().click(navigate_to_shopify).perform();
 
     // switch tab
+    await driver.sleep(5000);
+    console.log('Switching tab...');
     try {
         let tabs = await driver.getAllWindowHandles();
+        console.log(tabs);
         await driver.switchTo().window(tabs[1]);
     }
     catch(e) {
         console.log("Switching tab failed!" + e);
         process.exit(1);
     }
+
+    process.exit(1);
     
     // refresh to close popup
-    await driver.sleep(10000);
+    await driver.sleep(5000);
     console.log('closing popup...');
     await driver.navigate().refresh();
     
