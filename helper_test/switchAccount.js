@@ -24,6 +24,7 @@ export const switchAccount = async (quoteId, action, driver, userId) => {
     catch (e) {
         console.log("Check current account failed!");
         console.log(e);
+        process.exit(1);
     }
     await driver.sleep(2000);
 
