@@ -44,16 +44,16 @@ export const quotelineTest = async(quoteId, ownerId, approverId, operationId, qu
     await (await driver).get('https://tibcocpq--sandbox.lightning.force.com/lightning/r/SBQQ__Quote__c/'+ quoteId + '/view');
  
     // edit lines
-    await edit_lines(quoteId, ownerId, quantity, discount, license_model, driver);
+    // await edit_lines(quoteId, ownerId, quantity, discount, license_model, driver);
  
-    // submit for approval
-    await quotesTest(quoteId, 'submit', ownerId, driver);
+    // // submit for approval
+    // await quotesTest(quoteId, 'submit', ownerId, driver);
  
-    // approve this quote
-    let isApprovalRequired = await driver.wait(until.elementLocated(By.xpath("//label[.='Approval Required']/span[1]")), 10000);
-    if (isApprovalRequired.isSelected()) {
-        await approveQuote(quoteId, approverId, driver);
-    }
+    // // approve this quote
+    // let isApprovalRequired = await driver.wait(until.elementLocated(By.xpath("//label[.='Approval Required']/span[1]")), 10000);
+    // if (isApprovalRequired.isSelected()) {
+    //     await approveQuote(quoteId, approverId, driver);
+    // }
 
     // // get the net amount
     // try {
@@ -108,7 +108,7 @@ export const quotelineTest = async(quoteId, ownerId, approverId, operationId, qu
     }
  
     // change opp fields
-    // await sales_complete(quoteId, operationId, driver);
+    await sales_complete(quoteId, operationId, driver);
     
     // driver.quit();
 }
@@ -165,4 +165,4 @@ const approveQuote = async(quoteId, approverId, driver) => {
  
 // checkout
 // node test_run a0p1I0000095NRXQA2 0051I000000dzesQAA 0051I000001yEr7QAE 0051I000006NbUOQA0 2 30 Subscription
-// node test_run a0p2g000001ZJCZAA4 0051I000006NbUJQA0 0051I000001yEr7QAE 0051I000006NbUOQA0 2 30 Subscription
+// node test_run a0p2g000001ZJIIAA4 0051I000006NbUJQA0 0051I000001yEr7QAE 0051I000006NbUOQA0 2 30 Subscription 
