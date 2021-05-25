@@ -247,6 +247,16 @@ export const checkout = async(quoteId, driver) => {
         console.log('Payment failed!' + e);
         process.exit(1);
     }
+
+    // get order number
+    await driver.sleep(5000);
+    try {
+        let order_number = await driver.wait(until.elementLocated(By.xpath("//span[@class='os-order-number']")),15000).getText();
+        console.log('Order Number: ' + order_number);
+    }
+    catch (e) {
+        console.log('No order number!' + e);
+    }
  
     // switch tab
     try {
