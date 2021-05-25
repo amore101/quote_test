@@ -82,8 +82,11 @@ export const checkout = async(quoteId, driver) => {
     
         let view_cart = await driver.wait(until.elementLocated(By.xpath("(//a[contains(text(), 'View cart')])[2]")),15000);
         await driver.actions().click(view_cart).perform();
-        
-        console.log('A new product added!');
+
+        let new_product = await driver.wait(until.elementLocated(By.xpath("//article[1]/div/div/h2")), 15000).getText();
+        if (new_product === 'Statistica™ Server') {
+            console.log('A new product added!');
+        }
     }
     catch(e) {
         console.log('Adding a new product failed!' + e);
