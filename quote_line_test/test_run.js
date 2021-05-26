@@ -40,4 +40,7 @@ const test_run = async() => {
 test_run();
 
 // node test_run a0p1I0000095NRXQA2 0051I000000dzesQAA 0051I000001yEr7QAE 0051I000006NbUOQA0 2 30 Subscription
+// https://tibco-sandbox.myshopify.com/4915691618/checkouts/5791d1cc9109e9504c55ca530460196a?previous_step=shipping_method&step=payment_method
+// https://tibco-sandbox.myshopify.com/4915691618/checkouts/5791d1cc9109e9504c55ca530460196a/processing
+// https://tibco-sandbox.myshopify.com/4915691618/checkouts/5791d1cc9109e9504c55ca530460196a/thank_you
 
